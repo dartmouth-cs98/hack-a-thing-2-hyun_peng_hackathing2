@@ -3,11 +3,13 @@ import numpy as np
 import torch
 
 import torch.optim as optim
-from torch.nn.functional import one_hot, log_softmax, softmax
+from torch.nn.functional import one_hot, log_softmax
 from collections import deque
 
 from rl.agent import Agent
 from rl.utils import Params, Utils
+
+import matplotlib.pyplot as plt
 
 
 # Followed tutorial/explanation from here: https://towardsdatascience.com/breaking-down-richard-suttons-policy-gradient-9768602cb63b
@@ -22,6 +24,8 @@ class PolicyGradientReinforceWithBaseline:
         self.HIDDEN_SIZE = Params.HIDDEN_SIZE
         self.BETA = Params.BETA
         self.DEVICE = torch.device('cpu')
+
+        self.rewards = []
 
         # create the environment
         self.env = gym.make('LunarLander-v2')
@@ -71,6 +75,7 @@ class PolicyGradientReinforceWithBaseline:
                 self.adam.step()
 
                 print("\r", f"Epoch: {epoch}, Avg Return per Epoch: {np.mean(self.total_rewards):.3f}")
+                self.rewards.append(np.mean(self.total_rewards))
 
                 # reset epoch arrays
                 epoch_logs = torch.empty(size=(0, self.env.action_space.n), device=self.DEVICE)
@@ -135,6 +140,10 @@ class PolicyGradientReinforceWithBaseline:
 def main():
     policy_gradient = PolicyGradientReinforceWithBaseline()
     policy_gradient.solve_environment()
+
+    plt.plot(policy_gradient.rewards)
+    plt.show()
+
 
 
 if __name__ == "__main__":
